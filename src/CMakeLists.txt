@@ -3,16 +3,16 @@ add_executable(can
         can.c
     )
 
-pico_set_program_name(act "test")
-pico_set_program_version(act "0.1")
+pico_set_program_name(can "test")
+pico_set_program_version(can "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB.
 # These are mutually exclusive, only set one.
-pico_enable_stdio_uart(act 1)
-pico_enable_stdio_usb(act 0)
+pico_enable_stdio_uart(can 1)
+pico_enable_stdio_usb(can 0)
 
 # Add the libraries to the build
-target_link_libraries(act PRIVATE
+target_link_libraries(can PRIVATE
   pico_stdlib
   pico_multicore
   pico_async_context_freertos
@@ -23,12 +23,12 @@ target_link_libraries(act PRIVATE
 # variable will be set and the wireless libraries added.
 if(PICO_CYW43_SUPPORTED)
     # For led support on pico_w
-    target_link_libraries(act PRIVATE
+    target_link_libraries(can PRIVATE
         pico_cyw43_arch_none
     )
 endif()
 
 # Another pico macro which generates the uf2 file in addition to the elf
-pico_add_extra_outputs(act)
+pico_add_extra_outputs(can)
 
-add_custom_target(flash picotool load -f $<TARGET_FILE:act> DEPENDS act)
+add_custom_target(flash picotool load -f $<TARGET_FILE:can> DEPENDS can)
