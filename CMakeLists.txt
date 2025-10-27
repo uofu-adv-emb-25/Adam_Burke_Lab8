@@ -46,6 +46,9 @@ include(${FREERTOS_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.c
 # This sets up the unity library. They don't provide a library export, so it's defined locally.
 include(unity.cmake)
 
+set(CAN_PATH lib/can)
+include(${CAN_PATH}/can2040.cmake)
+
 # This defines your project name, you can name it anything you want.
 project(myproject C CXX ASM)
 
@@ -60,6 +63,7 @@ add_compile_definitions(
 
 # This is where your project header files are located.
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+include_directories(${CAN_PATH}/src)
 
 # The main executable is defined inside the src directory.
 add_subdirectory(src)
