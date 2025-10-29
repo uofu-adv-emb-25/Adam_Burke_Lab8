@@ -19,7 +19,7 @@ void canbus_setup(void)
 {
     uint32_t pio_num = 0;
     uint32_t sys_clock = 125000000, bitrate = 500000;
-    uint32_t gpio_rx = 4, gpio_tx = 5;
+    uint32_t gpio_rx = 4, gpio_tx = 3;
 
     // Setup canbus
     can2040_setup(&cbus, pio_num);
