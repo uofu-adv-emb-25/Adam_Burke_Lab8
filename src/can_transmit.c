@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <pico/stdlib.h>
 
+
 static struct can2040 cbus;
 
 static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
@@ -15,11 +16,12 @@ static void PIOx_IRQHandler(void)
     can2040_pio_irq_handler(&cbus);
 }
 
+
 void canbus_setup(void)
 {
     uint32_t pio_num = 0;
     uint32_t sys_clock = 125000000, bitrate = 500000;
-    uint32_t gpio_rx = 4, gpio_tx = 3;
+    uint32_t gpio_rx = 4, gpio_tx = 5 ;
 
     // Setup canbus
     can2040_setup(&cbus, pio_num);
@@ -35,5 +37,18 @@ void canbus_setup(void)
 }
 
 int main () {
-    return 0;
+    //can2040_transmit(struct can2040 *cd, struct can2040_msg *msg)
+    stdio_init_all();
+    canbus_setup();
+
+    for(;;){
+        struct can2040_msg tmsg;
+            tmsg.id = 0x102;
+            tmsg.dlc = 8;
+            tmsg.data32[0] = 0xabcd;
+            tmsg.data32[1] = 0x5555;
+        int sts = can2040_transmit(&cbus, &tmsg);
+        sleep_ms(1000);
+    }
+    
 }

@@ -1,6 +1,6 @@
 # This is the main binary. List your C files here.
 add_executable(can
-        can.c
+        can_transmit.c
     )
 
 pico_set_program_name(can "test")
@@ -16,6 +16,7 @@ target_link_libraries(can PRIVATE
   pico_stdlib
   pico_multicore
   pico_async_context_freertos
+  can2040
   FreeRTOS-Kernel-Heap4
 )
 
