@@ -2,13 +2,19 @@
 #include <hardware/regs/intctrl.h>
 #include <stdio.h>
 #include <pico/stdlib.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+# include "FreeRTOSConfig.h"
 
 
 static struct can2040 cbus;
+QueueHandle_t msgs;
 
 static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
 {
-    printf("Transmit complete for message ID %d\n", msg->id);
+    // Send received message to queue
+    xQueueSendFromISR(msgs, msg, NULL);
 }
 
 static void PIOx_IRQHandler(void)
@@ -36,23 +42,42 @@ void canbus_setup(void)
     can2040_start(&cbus, sys_clock, bitrate, gpio_rx, gpio_tx);
 }
 
-int main () {
-    
-    stdio_init_all();
-    canbus_setup();
-    
+void main_task(__unused void *params)
+{
+    // Create queue for received messages
+    struct can2040_msg data;
+    xQueueReceiveFromISR(msgs, &data, NULL);
 
+    // Transmit messages
     for(;;){
         int count = 1;
         struct can2040_msg tmsg;
+            // ID is priority encoded 1 = highest priority
             tmsg.id = 1;
             tmsg.dlc = 8;
             tmsg.data32[0] = 0xabcd;
             tmsg.data32[1] = 0x5555;
-        int sts = can2040_transmit(&cbus, &tmsg);
-        //printf("message sent times with status %d\n", sts);
-        sleep_ms(1000);
 
+        // Transmit message
+        int sts = can2040_transmit(&cbus, &tmsg);
+        sleep_ms(1000);
     }
-     
+    
+}
+
+int main () {
+    // Initialize stdio
+    stdio_init_all();
+    canbus_setup();
+
+    // Create queue for received messages
+    msgs = xQueueCreate(100, sizeof(struct can2040_msg));
+
+    // Create main task
+    TaskHandle_t task;
+    xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, &task);
+        
+    vTaskStartScheduler();
+    return 0;
+  
 }
