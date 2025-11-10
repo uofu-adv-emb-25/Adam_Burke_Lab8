@@ -8,7 +8,7 @@ static struct can2040 cbus;
 
 static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
 {
-    // Put your code here....
+    printf("Transmit complete for message ID %d\n", msg->id);
 }
 
 static void PIOx_IRQHandler(void)
@@ -37,18 +37,22 @@ void canbus_setup(void)
 }
 
 int main () {
-    //can2040_transmit(struct can2040 *cd, struct can2040_msg *msg)
+    
     stdio_init_all();
     canbus_setup();
+    
 
     for(;;){
+        int count = 1;
         struct can2040_msg tmsg;
-            tmsg.id = 0x102;
+            tmsg.id = 1;
             tmsg.dlc = 8;
             tmsg.data32[0] = 0xabcd;
             tmsg.data32[1] = 0x5555;
         int sts = can2040_transmit(&cbus, &tmsg);
+        //printf("message sent times with status %d\n", sts);
         sleep_ms(1000);
+
     }
-    
+     
 }
