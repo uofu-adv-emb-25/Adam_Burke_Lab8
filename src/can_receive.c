@@ -7,7 +7,7 @@ static struct can2040 cbus;
 
 static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
 {
-    // Put your code here....
+    printf("%x %x %x %x\n", msg->id, msg->dlc, msg->data32[0], msg->data32[1]);
 }
 
 static void PIOx_IRQHandler(void)
@@ -35,5 +35,7 @@ void canbus_setup(void)
 }
 
 int main () {
-    return 0;
+    stdio_init_all();
+    canbus_setup();
+    while (1);
 }
