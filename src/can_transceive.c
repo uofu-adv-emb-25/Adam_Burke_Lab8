@@ -7,6 +7,9 @@
 #include <queue.h>
 #include "FreeRTOSConfig.h"
 
+#define DELAY_MS 500
+#define MSG_ID 2
+
 static struct can2040 cbus;
 QueueHandle_t rx_queue;
 
@@ -47,15 +50,38 @@ void runReceive(__unused void* _) {
     }
 }
 
+void runTransmit(__unused void *params)
+{
+    // Create queue for received messages
+    struct can2040_msg data;
+
+    // Transmit messages
+    for(;;){
+        int count = 1;
+        struct can2040_msg tmsg;
+            // ID is priority encoded 1 = highest priority
+            tmsg.id = MSG_ID;
+            tmsg.dlc = 8;
+            tmsg.data32[0] = 0xabcd;
+            tmsg.data32[1] = 0x5555;
+
+        // Transmit message
+        int sts = can2040_transmit(&cbus, &tmsg);
+        vTaskDelay(DELAY_MS);
+    }
+    
+}
+
 int main () {
     // setup IO
     stdio_init_all();
     canbus_setup();
 
     // setup parallelism
-    TaskHandle_t receive_task;
+    TaskHandle_t receive_task, transmit_task;
     rx_queue = xQueueCreate(64, sizeof(struct can2040_msg));
     xTaskCreate(runReceive, "runReceive", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1UL, &receive_task);
+    xTaskCreate(runTransmit, "runTransmit", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1UL, &transmit_task);
     vTaskStartScheduler();
 
     while (1);
