@@ -2,12 +2,17 @@
 #include <hardware/regs/intctrl.h>
 #include <stdio.h>
 #include <pico/stdlib.h>
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+#include "FreeRTOSConfig.h"
 
 static struct can2040 cbus;
+QueueHandle_t rx_queue;
 
 static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
 {
-    // Put your code here....
+    xQueueSendToBackFromISR(rx_queue, msg, NULL);
 }
 
 static void PIOx_IRQHandler(void)
@@ -34,6 +39,24 @@ void canbus_setup(void)
     can2040_start(&cbus, sys_clock, bitrate, gpio_rx, gpio_tx);
 }
 
+void runReceive(__unused void* _) {
+    struct can2040_msg rx_msg;
+    while (1) {
+        xQueueReceive(rx_queue, &rx_msg, portMAX_DELAY);
+        printf("Received message: id = %x, data[0] = %x, data[1] = %x\n", rx_msg.id, rx_msg.data32[0], rx_msg.data32[1]);
+    }
+}
+
 int main () {
-    return 0;
+    // setup IO
+    stdio_init_all();
+    canbus_setup();
+
+    // setup parallelism
+    TaskHandle_t receive_task;
+    rx_queue = xQueueCreate(64, sizeof(struct can2040_msg));
+    xTaskCreate(runReceive, "runReceive", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1UL, &receive_task);
+    vTaskStartScheduler();
+
+    while (1);
 }

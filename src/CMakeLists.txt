@@ -1,6 +1,6 @@
 # This is the main binary. List your C files here.
 add_executable(can
-        can.c
+        can_transceive.c
     )
 
 pico_set_program_name(can "test")
@@ -8,14 +8,15 @@ pico_set_program_version(can "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB.
 # These are mutually exclusive, only set one.
-pico_enable_stdio_uart(can 1)
-pico_enable_stdio_usb(can 0)
+pico_enable_stdio_uart(can 0)
+pico_enable_stdio_usb(can 1)
 
 # Add the libraries to the build
 target_link_libraries(can PRIVATE
   pico_stdlib
   pico_multicore
   pico_async_context_freertos
+  can2040
   FreeRTOS-Kernel-Heap4
 )
 
